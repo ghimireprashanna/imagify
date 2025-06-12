@@ -72,11 +72,17 @@ const userCredits = async (req, res) => {
 const razorpayInstance = new razorpay({
     key_id: process.env.RAZORPAY_KEY_ID,
     key_secret: process.env.RAZORPAY_KEY_SECRET,
+    
+
 })
+console.log("Key ID:", process.env.RAZORPAY_KEY_ID);
+console.log("Key Secret:", process.env.RAZORPAY_KEY_SECRET);
 
 const paymentRazorpay = async (req, res) => {
     try {
-        const { userId, planId } = req.body
+        const userId = req.user.id; // not from req.body
+        const { planId } = req.body;
+        
         const userData = await userModel.findById(userId)
 
         if (!userId || !planId) {
@@ -119,14 +125,9 @@ const paymentRazorpay = async (req, res) => {
             currency: process.env.CURRENCY,
             receipt: newTransaction._id
         }
-        await razorpayInstance.orders.create(options, (error, order) => {
-            if (error){
-                console.log(error);
-                return res.json({ success:false, message:error })
-                
-            }
-            res.json({success: true, order})
-        })
+        const order = await razorpayInstance.orders.create(options);
+res.json({ success: true, order });
+
  
     } catch (error) {
         console.log(error);
